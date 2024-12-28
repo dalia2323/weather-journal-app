@@ -1,0 +1,32 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0; 
+}
+body {
+    background:#e6e6fa;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+#app{
+    
+    background-color: slateblue;
+    border-radius: 10px;
+    box-shadow:0 4px 8px rgba(0, 0, 0, 0.3);
+    color: #e6e6fa;
+    margin: auto;
+    margin-top: 7rem;
+    padding: 2rem;
+    width: 50vw;
+    font-family: cursive;
+}
+h1{
+    font-size: 2rem;
+    text-align: center;
+}
+#zip{
+    border: 0.2rem solid rgb(83, 75, 133);
+    border-radius: .5rem;
+    display: block;
+    font-size: 1.5rem;
+    text-align: center;
+}
