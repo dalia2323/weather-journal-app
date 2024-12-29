@@ -29,4 +29,24 @@ h1{
     display: block;
     font-size: 1.5rem;
     text-align: center;
+margin: 20px auto;
+
+}
+#feelings{
+    border: 0.2rem solid rgb(83, 75, 133);
+    border-radius: .5rem;
+    display: block;
+    margin: auto;
+    text-align:center;
+    padding-top: 20px;
+}
+#generate{
+    background-color:#e6e6fa ;
+    /* color: #e6e6fa; */
+    width: 10rem;
+    height: 2rem;
+    border: none;
+    border-radius: 0.5rem;
+    margin-left: 13rem;
+    margin-top: 1rem;
 }

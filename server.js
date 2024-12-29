@@ -7,7 +7,7 @@ const express = require('express');
 // Start up an instance of app
 const app = express();
 
-/* Middleware*/
+/* Middleware */
 // Configure express to use body-parser as middle-ware
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -24,4 +24,20 @@ app.use(express.static('website'));
 const port = 3000;
 app.listen(port, () => {
     console.log(`Server running on localhost:${port}`);
+});
+
+// POST route
+app.post('/add', (req, res) => {
+    const { temperature, date, userResponse } = req.body;
+    projectData = {
+        temperature,
+        date,
+        userResponse
+    };
+    res.send({ message: "Data added successfully", projectData });
+});
+
+// GET route
+app.get('/data', (req, res) => {
+    res.send(projectData);
 });
