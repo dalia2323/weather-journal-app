@@ -1,70 +1,74 @@
-/* Global Variables */
-
-// Create a new date instance dynamically with JS
-let d = new Date();
-let newDate = d.getMonth()+'.'+ d.getDate()+'.'+ d.getFullYear();
-// Personal API Key for OpenWeatherMap API
-
-/* Global Variables */
+// Global Variables
 const baseURL = 'https://api.openweathermap.org/data/2.5/weather?zip=';
-const apiKey = '44dce7841e81feaac7678e130b79be8e';
+const apiKey = 'ca1d7f1373a5f74197980b585f9eda3c'; 
+const apiUrl = "http://localhost:3000/";
 
-// Function to fetch weather data from OpenWeatherMap API
-const getWeatherData = async (zip) => {
-    const res = await fetch(`${baseURL}${zip}&appid=${apiKey}`);
-    try {
-        const data = await res.json();
-        return data;
-    } catch (error) {
-        console.log("Error fetching weather data:", error);
-    }
-};
-
-// Function to post data to the server
-const postData = async (url = '', data = {}) => {
-    const res = await fetch(url, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
-    try {
-        const newData = await res.json();
-        return newData;
-    } catch (error) {
-        console.log("Error posting data:", error);
-    }
-};
-
-// Function to update the UI
-const updateUI = async () => {
-    const res = await fetch('/all');
-    try {
-        const data = await res.json();
-        document.getElementById('date').innerHTML = `Date: ${data.date}`;
-        document.getElementById('temp').innerHTML = `Temperature: ${data.temperature}°C`;
-        document.getElementById('content').innerHTML = `Feeling: ${data.userResponse}`;
-    } catch (error) {
-        console.log("Error updating UI:", error);
-    }
-};
+const zipCodeElement = document.getElementById('zip');
+const feelingsElement = document.getElementById('feelings');
+const dateElement = document.getElementById('date');
+const tempElement = document.getElementById('temp');
+const contentElement = document.getElementById('content');
+const catchError = (error) => console.error('Error:', error);
 
 // Event listener for the generate button
-document.getElementById('generate').addEventListener('click', async () => {
-    const zip = document.getElementById('zip').value;
-    const feelings = document.getElementById('feelings').value;
+document.getElementById('generate').addEventListener('click', onGenerate);
 
-    const weatherData = await getWeatherData(zip);
-    if (weatherData && weatherData.main) {
-        const { temp } = weatherData.main;
-        const date = new Date().toLocaleDateString();
+function onGenerate() {
+    const zipCode = zipCodeElement.value;
+    const content = feelingsElement.value;
 
-        await postData('/add', { temperature: temp, date, userResponse: feelings });
-        updateUI();
-    } else {
-        console.log("Invalid zip code or no data available.");
+    if (!zipCode || !content) {
+        return alert('Please enter both zip code and your feelings!');
     }
-});
 
+    const data = {
+        zipCode,
+        content,
+        date: new Date().toLocaleString(),
+    };
+
+    // Fetch weather data and update UI
+    getZipCodeInformation(zipCode)
+        .then((zipInfo) => {
+            if (zipInfo.cod != 200) {
+                return alert(zipInfo.message);
+            }
+
+            data.temp = zipInfo.main.temp;
+            return postDataToServer(data);
+        })
+        .then(updateUI)
+        .catch(catchError);
+}
+
+async function getZipCodeInformation(zipCode) {
+    const response = await fetch(`${baseURL}${zipCode}&appid=${apiKey}`);
+    return await response.json();
+}
+
+async function postDataToServer(data) {
+    const response = await fetch(`${apiUrl}add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to post data to server');
+    }
+
+    return await response.json();
+}
+
+async function updateUI() {
+    const response = await fetch(`${apiUrl}data`);
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch data from server');
+    }
+
+    const data = await response.json();
+    dateElement.innerHTML = `Date: ${data.date}`;
+    tempElement.innerHTML = `Temperature: ${data.temperature}`;
+    contentElement.innerHTML = `Feelings: ${data.userResponse}`;
+}
