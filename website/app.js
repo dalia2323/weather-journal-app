@@ -1,74 +1,104 @@
-// Global Variables
-const baseURL = 'https://api.openweathermap.org/data/2.5/weather?zip=';
+/* Global Variables */
+const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';
 const apiKey = 'ca1d7f1373a5f74197980b585f9eda3c'; 
-const apiUrl = "http://localhost:3000/";
 
-const zipCodeElement = document.getElementById('zip');
-const feelingsElement = document.getElementById('feelings');
-const dateElement = document.getElementById('date');
-const tempElement = document.getElementById('temp');
-const contentElement = document.getElementById('content');
-const catchError = (error) => console.error('Error:', error);
+// Create a new date instance dynamically with JS
+let d = new Date();
+let newDate = d.getMonth() + '.' + d.getDate() + '.' + d.getFullYear();
 
-// Event listener for the generate button
-document.getElementById('generate').addEventListener('click', onGenerate);
+const userInfo = document.getElementById('userInfo');
 
-function onGenerate() {
-    const zipCode = zipCodeElement.value;
-    const content = feelingsElement.value;
+// Event listener to add function to existing HTML DOM element
+const generateBtn = document.getElementById('generate');
+generateBtn.addEventListener('click', onGenerate);
 
-    if (!zipCode || !content) {
-        return alert('Please enter both zip code and your feelings!');
+/* Function called by event listener */
+function onGenerate(e) {
+    e.preventDefault();
+
+    //get user input
+    const zipCode = document.getElementById('zip').value;
+    const content = document.getElementById('feelings').value;
+
+    if (zipCode !== '') {
+        generateBtn.classList.remove('invalid');
+        getWeatherData(baseUrl, zipCode, apiKey)
+            .then(function(data) {
+                // add data to POST request
+                postData('/add', { temp: convertKelvinToCelsius(data.main.temp), date: newDate, content: content });
+            }).then(function() {
+                // call updateUI to update browser content
+                updateUI()
+            }).catch(function(error) {
+                console.log(error);
+                alert('The zip code is invalid. Try again');
+
+            });
+        userInfo.reset();
+    } else {
+        generateBtn.classList.add('invalid');
     }
 
-    const data = {
-        zipCode,
-        content,
-        date: new Date().toLocaleString(),
-    };
 
-    // Fetch weather data and update UI
-    getZipCodeInformation(zipCode)
-        .then((zipInfo) => {
-            if (zipInfo.cod != 200) {
-                return alert(zipInfo.message);
-            }
-
-            data.temp = zipInfo.main.temp;
-            return postDataToServer(data);
-        })
-        .then(updateUI)
-        .catch(catchError);
 }
 
-async function getZipCodeInformation(zipCode) {
-    const response = await fetch(`${baseURL}${zipCode}&appid=${apiKey}`);
-    return await response.json();
-}
+/* Function to GET Web API Data*/
+const getWeatherData = async(baseUrl, zipCode, apiKey) => {
+    // res equals to the result of fetch function
+    const res = await fetch(`${baseUrl}?q=${zipCode}&appid=${apiKey}`);
+    try {
+        // data equals to the result of fetch function
+        const data = await res.json();
+        return data;
+    } catch (error) {
+        console.log('error', error);
+    }
+};
 
-async function postDataToServer(data) {
-    const response = await fetch(`${apiUrl}add`, {
+/* Function to POST data */
+const postData = async(url = '', data = {}) => {
+    const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            temp: data.temp,
+            date: data.date,
+            content: data.content
+        })
     });
 
-    if (!response.ok) {
-        throw new Error('Failed to post data to server');
+    try {
+        const newData = await response.json();
+        return newData;
+    } catch (error) {
+        console.log(error);
     }
+};
 
-    return await response.json();
-}
-
-async function updateUI() {
-    const response = await fetch(`${apiUrl}data`);
-
-    if (!response.ok) {
-        throw new Error('Failed to fetch data from server');
+const updateUI = async() => {
+    const request = await fetch('/all');
+    try {
+        const allData = await request.json();
+        console.log(allData);
+        // update new entry values
+        if (allData.date !== undefined && allData.temp !== undefined && allData.content !== undefined) {
+            document.getElementById('date').innerHTML = allData.date;
+            document.getElementById('temp').innerHTML = allData.temp + ' degree C';
+            document.getElementById('content').innerHTML = allData.content;
+        }
+    } catch (error) {
+        console.log('error', error);
     }
+};
 
-    const data = await response.json();
-    dateElement.innerHTML = `Date: ${data.date}`;
-    tempElement.innerHTML = `Temperature: ${data.temperature}`;
-    contentElement.innerHTML = `Feelings: ${data.userResponse}`;
+// helper function to convert temperature from Kelvin to Celsius
+function convertKelvinToCelsius(kelvin) {
+    if (kelvin < (0)) {
+        return 'below absolute zero (0 K)';
+    } else {
+        return (kelvin - 273.15).toFixed(2);
+    }
 }

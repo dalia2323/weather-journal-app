@@ -1,15 +1,16 @@
 // Setup empty JS object to act as endpoint for all routes
-projectData = {};
+let projectData = {};
 
 // Require Express to run server and routes
 const express = require('express');
 
+/* Dependencies */
+const bodyParser = require('body-parser');
+
 // Start up an instance of app
 const app = express();
 
-/* Middleware */
-// Configure express to use body-parser as middle-ware
-const bodyParser = require('body-parser');
+/* Middleware*/
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -20,24 +21,23 @@ app.use(cors());
 // Initialize the main project folder
 app.use(express.static('website'));
 
-// Setup Server
-const port = 3000;
-app.listen(port, () => {
-    console.log(`Server running on localhost:${port}`);
-});
-
 // POST route
-app.post('/add', (req, res) => {
-    const { temperature, date, userResponse } = req.body;
-    projectData = {
-        temperature,
-        date,
-        userResponse
-    };
-    res.send({ message: "Data added successfully", projectData });
-});
+app.post('/add', addInfo);
 
-// GET route
-app.get('/data', (req, res) => {
+function addInfo(req, res) {
+    projectData['temp'] = req.body.temp;
+    projectData['date'] = req.body.date;
+    projectData['content'] = req.body.content;
     res.send(projectData);
+}
+
+app.get('/all', getInfo);
+
+// Callback function to complete GET '/all'
+function getInfo(req, res) {
+    res.send(projectData);
+};
+const port = 8080;
+const server = app.listen(port, () => {
+    console.log(`server is listening on port: ${port}`); // Callback to debug
 });
