@@ -3,8 +3,11 @@ const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';
 const apiKey = 'ca1d7f1373a5f74197980b585f9eda3c'; 
 
 // Create a new date instance dynamically with JS
-let d = new Date();
-let newDate = d.getMonth() + '.' + d.getDate() + '.' + d.getFullYear();
+let newDate = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+});
 
 const userInfo = document.getElementById('userInfo');
 
@@ -19,7 +22,6 @@ function onGenerate(e) {
     //get user input
     const zipCode = document.getElementById('zip').value;
     const content = document.getElementById('feelings').value;
-
     if (zipCode !== '') {
         generateBtn.classList.remove('invalid');
         getWeatherData(baseUrl, zipCode, apiKey)
@@ -85,9 +87,9 @@ const updateUI = async() => {
         console.log(allData);
         // update new entry values
         if (allData.date !== undefined && allData.temp !== undefined && allData.content !== undefined) {
-            document.getElementById('date').innerHTML = allData.date;
-            document.getElementById('temp').innerHTML = allData.temp + ' degree C';
-            document.getElementById('content').innerHTML = allData.content;
+            document.getElementById('date').innerHTML =`Date:${allData.date}`;
+            document.getElementById('temp').innerHTML = `Temperature: ${allData.temp } degree C`;
+            document.getElementById('content').innerHTML = `Feelings: ${allData.content}`;
         }
     } catch (error) {
         console.log('error', error);
